@@ -4,6 +4,8 @@ import numpy as np
 import yfinance as yf
 import plotly.graph_objects as go
 
+st.set_page_config(page_title="DCA Calculator", page_icon="💰")
+
 # Title
 st.title("Dollar Cost Averaging (DCA) Calculator")
 
@@ -98,3 +100,39 @@ portfolio_fig.add_trace(go.Scatter(x=filtered_data.index, y=portfolio_value, mod
 portfolio_fig.add_trace(go.Scatter(x=filtered_data.index, y=contributions, mode="lines", name="Total Invested", line=dict(dash="dash")))
 portfolio_fig.update_layout(title="Portfolio Value vs Total Invested", xaxis_title="Date", yaxis_title="Value ($)")
 st.plotly_chart(portfolio_fig)
+
+
+# Stacked Bar Chart
+
+
+# Create a Stacked Bar Chart
+fig = go.Figure()
+
+# Add Total Invested
+fig.add_trace(go.Bar(
+    x=dca_df["Date"],
+    y=dca_df["Total Investment"],
+    name="Total Invested",
+    marker_color="blue"
+))
+
+# Add Profit/Loss
+fig.add_trace(go.Bar(
+    x=dca_df["Date"],
+    y=dca_df["Portfolio Value"] - dca_df["Total Investment"],
+    name="Profit/Loss",
+    marker_color="green"
+))
+
+# Update layout for better appearance
+fig.update_layout(
+    title="DCA Results: Total Invested and Profit/Loss",
+    xaxis_title="Years",
+    yaxis_title="Amount ($)",
+    barmode="stack",  # Stacked bars
+    legend_title="Legend"
+)
+
+# Display in Streamlit
+st.plotly_chart(fig)
+
