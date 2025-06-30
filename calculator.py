@@ -52,17 +52,20 @@ filtered_data.set_index("Date", inplace=True)
 if frequency == "Weekly":
     filtered_data = filtered_data.resample("W").mean()
 elif frequency == "Monthly":
-    filtered_data = filtered_data.resample("ME").mean()
+    filtered_data = filtered_data.resample("M").mean()
 
 # Perform DCA Calculation
 total_invested = 0
 total_shares = 0
 dca_log = []
 
-for date, row in filtered_data.iterrows():
+for i, (date, row) in enumerate(filtered_data.iterrows()):
     price = row['Close']
-    total_shares += regular_contribution / price
-    total_invested += regular_contribution
+    contribution = regular_contribution
+    if i == 0:
+        contribution += initial_investment
+    total_shares += contribution / price
+    total_invested += contribution
     dca_log.append({
         "Date": date,
         "Price": price,
