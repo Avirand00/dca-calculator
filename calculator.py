@@ -34,13 +34,16 @@ def calculate_dca(filtered_data: pd.DataFrame, regular_contribution: float, init
             contribution += initial_investment
         total_shares += contribution / price
         total_invested += contribution
+        portfolio_value = total_shares * price
         dca_log.append(
             {
                 "Date": date,
                 "Price": price,
+                "Contribution": contribution,
                 "Total Shares": total_shares,
                 "Total Investment": total_invested,
-                "Portfolio Value": total_shares * price,
+                "Portfolio Value": portfolio_value,
+                "Profit/Loss": portfolio_value - total_invested,
             }
         )
 
@@ -111,7 +114,7 @@ def main():
     # Results
     st.subheader("Results")
     final_value = portfolio_value.iloc[-1]
-    net_gain_loss = final_value - total_invested
+    net_gain_loss = dca_df["Profit/Loss"].iloc[-1]
 
     st.write(f"**Total Invested:** ${total_invested:.2f}")
     st.write(f"**Final Portfolio Value:** ${final_value:.2f}")
@@ -145,40 +148,68 @@ def main():
     portfolio_fig.update_layout(title="Portfolio Value vs Total Invested", xaxis_title="Date", yaxis_title="Value ($)")
     st.plotly_chart(portfolio_fig)
 
-    # Stacked Bar Chart
-    fig = go.Figure()
+    # Contribution Breakdown
+    contribution_fig = go.Figure()
+    contribution_fig.add_trace(
+        go.Bar(
+            x=dca_df["Date"],
+            y=dca_df["Contribution"],
+            name="Contribution",
+            marker_color="#1f77b4",
+        )
+    )
+    contribution_fig.update_layout(
+        title="Contributions per Period",
+        xaxis_title="Date",
+        yaxis_title="Amount ($)",
+    )
+    st.plotly_chart(contribution_fig, use_container_width=True)
 
-    # Add Total Invested
-    fig.add_trace(
+    # Stacked Total vs Profit/Loss
+    totals_fig = go.Figure()
+    totals_fig.add_trace(
         go.Bar(
             x=dca_df["Date"],
             y=dca_df["Total Investment"],
             name="Total Invested",
-            marker_color="blue",
+            marker_color="#636efa",
         )
     )
-
-    # Add Profit/Loss
-    fig.add_trace(
+    totals_fig.add_trace(
         go.Bar(
             x=dca_df["Date"],
-            y=dca_df["Portfolio Value"] - dca_df["Total Investment"],
+            y=dca_df["Profit/Loss"],
             name="Profit/Loss",
-            marker_color="green",
+            marker_color="#2ca02c",
         )
     )
-
-    # Update layout for better appearance
-    fig.update_layout(
+    totals_fig.update_layout(
         title="DCA Results: Total Invested and Profit/Loss",
-        xaxis_title="Years",
+        xaxis_title="Date",
         yaxis_title="Amount ($)",
-        barmode="stack",  # Stacked bars
+        barmode="stack",
         legend_title="Legend",
     )
+    st.plotly_chart(totals_fig, use_container_width=True)
 
-    # Display in Streamlit
-    st.plotly_chart(fig)
+    # Total Shares Growth
+    shares_fig = go.Figure()
+    shares_fig.add_trace(
+        go.Scatter(
+            x=dca_df["Date"],
+            y=dca_df["Total Shares"],
+            mode="lines+markers",
+            name="Total Shares",
+            line=dict(color="#ff7f0e"),
+            fill="tozeroy",
+        )
+    )
+    shares_fig.update_layout(
+        title="Total Shares Accumulated",
+        xaxis_title="Date",
+        yaxis_title="Shares",
+    )
+    st.plotly_chart(shares_fig, use_container_width=True)
 
 
 if __name__ == "__main__":
